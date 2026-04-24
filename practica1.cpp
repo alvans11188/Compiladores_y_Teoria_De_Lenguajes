@@ -5,24 +5,26 @@
 
 using namespace std;
 
-typedef enum {
-    KEYWORD,
-    IDENTIFIER,
-    NUMBER,
-    OPERATOR,
-    DELIMITER,
-    STRING,
-    UNKNOWN
+//definicion de tipos de categorias que se usaran para el compilador
+typedef enum { 
+    KEYWORD,	//palabra reservadas int,if,while
+    IDENTIFIER, //nombres de variables o funciones
+    NUMBER,		//valores de numeros
+    OPERATOR,	// operadores como *,/,+,-
+    DELIMITER,	// delimitador ; 
+    STRING,		// texto entre comilla
+    UNKNOWN		//caracteres desconocidos
 } TokenType;
 
+//funcion de deteccion de caracteres individuales LETRAS
 bool isLetter(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
-
+//funcion de deteccion de caracteres individuales numeros enteros y con decimales
 bool isDigitChar(char c) {
     return (c >= '0' && c <= '9'||c=='.');
 }
-
+//funcion de comparacion de palabras con palabras reservadas
 bool isKeyword(char *str) {
     const char *keywords[] = {"int", "float", "if", "else", "while", "return"};
     int n = 6;
@@ -41,24 +43,26 @@ bool esUnString(char c){
 		return false;
 	}
 }
+//funcion de analizador lector de caracter por caracter 
 void lexer(ifstream &file) {
     char c;
     
     while (file.get(c)) {
-        if (isspace(c)) continue;
+        if (isspace(c)) continue; //ignora saltos de espacios, lineas y tabulados
         
+        //1. logica de busqueda de identificadores y palabras reservadas (KEYWORD)
         if (isLetter(c)) {
             char buffer[100];
             int i = 0;
             do {
                 buffer[i++] = c;
                 file.get(c);
-            } while (file && (isLetter(c) || isDigitChar(c)));
+            } while (file && (isLetter(c) || isDigitChar(c))); //lectura completa de la linea para encontrar numero
             
             buffer[i] = '\0';
             
             if (file) {
-                file.unget();
+                file.unget(); //retorna el ultimo caracter leido que no es letra ni numero
             }
             
             if (isKeyword(buffer)) {
@@ -66,14 +70,14 @@ void lexer(ifstream &file) {
             } else {
                 cout << "[IDENTIFIER: " << buffer << "]\n";
             }
-            
+        //2. logica de identificacion de numeros     
         } else if (isDigitChar(c)) {
             char buffer[100];
             int i = 0;
             do {
                 buffer[i++] = c;
                 file.get(c);
-            } while (file && isDigitChar(c));
+            } while (file && isDigitChar(c)); 
             
             buffer[i] = '\0';
             
@@ -82,17 +86,20 @@ void lexer(ifstream &file) {
             }
             
             cout << "[NUMBER: " << buffer << "]\n";
-            
+        //3. logica de identificacion de string    
         } else if(esUnString(c)){
         	char buffer[100];
         	int i=0;
         	do{
-                buffer[i++] = c;
                 file.get(c);
-            } while (file && esUnString(c));
-           
-            
+				buffer[i++] = c;
+                
+            } while (file && !esUnString(c)); //lectura hasta no encontrar sgte comilla 
+			
+			buffer[i] = '\0';           
             cout << "[STRING: " << buffer << "]\n";
+            
+        //4. Logica de deteccion directa de operadores y limitadores
 		}else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=') {
             cout << "[OPERATOR: " << c << "]\n";
         } else if (c == ';' || c == ',' || c == '(' || c == ')') {
