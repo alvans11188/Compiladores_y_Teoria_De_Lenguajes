@@ -53,6 +53,14 @@ bool esUnComentario(char c){
 }
 //funcion de analizador lector de caracter por caracter 
 void lexer(ifstream &file) {
+	int ide=0;
+	int key=0;
+	int num=0;
+	int errores=0;
+	int strin=0;
+	int ope=0;
+	int deli=0;
+	
     char c;
     
     while (file.get(c)) {
@@ -60,7 +68,7 @@ void lexer(ifstream &file) {
         
         //1. logica de busqueda de identificadores y palabras reservadas (KEYWORD)
         if (isLetter(c)) {
-            char buffer[100];
+            char buffer[100]={0};
             int i = 0;
             do {
                 buffer[i++] = c;
@@ -75,12 +83,14 @@ void lexer(ifstream &file) {
             
             if (isKeyword(buffer)) {
                 cout << "[KEYWORD: " << buffer << "]\n";
+                key++;
             } else {
                 cout << "[IDENTIFICADOR: " << buffer << "]\n";
+                ide++;
             }
         //2. logica de identificacion de numeros     
         } else if (isDigitChar(c)) {
-            char buffer[100];
+            char buffer[100]={0}; 
             int i = 0;
             do {
                 buffer[i++] = c;
@@ -94,81 +104,110 @@ void lexer(ifstream &file) {
             }
             
             cout << "[NUMERO: " << buffer << "]\n";
+            num++;
         //3. TAREA logica de identificacion de string    
         } else if(esUnString(c)){
-        	char buffer[100];
+        	char buffer[100]={0};
         	int i=0;
-        	do{
+        	while(file.get(c)&&!esUnString(c)){
+        		buffer[i++] = c;
+			}
+        	
+        	/*do{
                 file.get(c);
 				buffer[i++] = c;
                 
             } while (file && !esUnString(c)); //lectura hasta no encontrar sgte comilla 
+            */
 			
 			buffer[i] = '\0';           
             cout << "[STRING: " << buffer << "]\n";
+            strin++;
         //5. TAREA lectura de un comentario simples y multilinea  
 		}else if (esUnComentario(c)){
-			char buffer[100];
+			char buffer[100] = {0}; //el {0} limpia el buffer , empezando a llenar el arreglo denuevo
 			int i=0;
 			char primero=c;
 			if(file.get(c)){
 				if(c=='/'){
-					buffer[i++] = primero;	
-					buffer[i++] = '/';	
 					
-					while(file.get(c)&&c!='\n'){
-						buffer[i++]=c;
-					}
-					/*
-					do{
-						file.get(c);
-						buffer[i++] = c;	
-					}while(c!='\n');
-					*/
-					buffer[i] = '\0'; 
-					cout << "[COMENTARIO SIMPLE: " << buffer << "]\n";
+						buffer[i++] = primero;	
+						buffer[i++] = '/';	
+						
+						while(file.get(c)&&c!='\n'){
+							buffer[i++]=c;
+						}
+						/*
+						do{
+							file.get(c);
+							buffer[i++] = c;	
+						}while(c!='\n');
+						*/
+						buffer[i] = '\0'; 
+						cout << "[COMENTARIO SIMPLE: " << buffer << "]\n";
+					
+					
 				}else if(c=='*'){
+					
 					buffer[i++] = primero;
 					buffer[i++] = c;
-					
-					
+					bool a=true;					
 					while(file.get(c)){
-						//buffer[i++] = c;
+						buffer[i++] = c;
 						if(c=='*'){
-							buffer[i++] = c;
-							break;
-						}else{
-							buffer[i++] = c;
+							file.get(c);
+							if(c=='/'){
+								buffer[i++] = c;
+								a=false;
+								break;
+							}else{
+								file.unget();
+							}		
 						}
-						
 					}
-					file.get(c);
-					buffer[i++] = c;
+					//file.get(c);
+					//buffer[i++] = c;
 					buffer[i] = '\0'; 
-					cout << "[COMENTARIO MULTILINEA: " << buffer << "]\n";
+					if(!a){
+						cout << "[COMENTARIO MULTILINEA: " << buffer << "]\n";
+					}else{
+						cout<< "ERROR LEXICO , NO OCURRE UN CIERRE DEL COMENTARIO MULTILINEA"<<endl;
+					}
+					
 				}else{
 					file.unget();
 					cout<<"[OPERADOR: /]\n";
+					ope++;
+					
 				}
 			}else{
 				file.unget();
 				cout<<"[OPERADOR: /]\n";
+				ope++;
 			}
-			
-		
-		
-		
-		 
+			continue; //para que no cuente doble un operador /
         //4. Logica de deteccion directa de operadores y limitadores
-		}else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=') {
+		}else if (c == '+' || c == '-' || c == '*' || /*c == '/' ||*/ c == '=') {
             cout << "[OPERADOR: " << c << "]\n";
+            ope++;
         } else if (c == ';' || c == ',' || c == '(' || c == ')') {
             cout << "[DELIMITADOR: " << c << "]\n";
+            deli++;
         } else {
             cout << "[DESCONOCIDO: " << c << "]\n";
+            errores++;
         }
 		
     }
+    cout<<"=== RESUMEN DE VALORES LEIDOS ==="<<endl;
+	cout<<"Total de Identificadores: "<< ide <<endl;
+	cout<<"Total de Keywords: "<<key<<endl;
+	cout<<"Total de Numeros: "<<num<<endl;
+	cout<<"Total de Operadores: "<<ope<<endl;
+	cout << " Delimitadores: " << deli << endl;
+    cout << " ERRORES: " << errores << endl;
+	//cout<<"Errores encontrados: "<<erro<<endl;
+
 }
 
 int main() {
