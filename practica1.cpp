@@ -22,7 +22,7 @@ bool isLetter(char c) {
 }
 //funcion de deteccion de caracteres individuales numeros enteros y con decimales
 bool isDigitChar(char c) {
-    return (c >= '0' && c <= '9'||c=='.');
+    return (c >= '0' && c <= '9'||c=='.'); //TAREA identificacion de numeros con decimales
 }
 //funcion de comparacion de palabras con palabras reservadas
 bool isKeyword(char *str) {
@@ -38,6 +38,14 @@ bool isKeyword(char *str) {
 }
 bool esUnString(char c){
 	if(c=='"'){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool esUnComentario(char c){
+	if(c=='/'){
 		return true;
 	}else{
 		return false;
@@ -68,7 +76,7 @@ void lexer(ifstream &file) {
             if (isKeyword(buffer)) {
                 cout << "[KEYWORD: " << buffer << "]\n";
             } else {
-                cout << "[IDENTIFIER: " << buffer << "]\n";
+                cout << "[IDENTIFICADOR: " << buffer << "]\n";
             }
         //2. logica de identificacion de numeros     
         } else if (isDigitChar(c)) {
@@ -85,8 +93,8 @@ void lexer(ifstream &file) {
                 file.unget();
             }
             
-            cout << "[NUMBER: " << buffer << "]\n";
-        //3. logica de identificacion de string    
+            cout << "[NUMERO: " << buffer << "]\n";
+        //3. TAREA logica de identificacion de string    
         } else if(esUnString(c)){
         	char buffer[100];
         	int i=0;
@@ -98,14 +106,66 @@ void lexer(ifstream &file) {
 			
 			buffer[i] = '\0';           
             cout << "[STRING: " << buffer << "]\n";
-            
+        //5. TAREA lectura de un comentario simples y multilinea  
+		}else if (esUnComentario(c)){
+			char buffer[100];
+			int i=0;
+			char primero=c;
+			if(file.get(c)){
+				if(c=='/'){
+					buffer[i++] = primero;	
+					buffer[i++] = '/';	
+					
+					while(file.get(c)&&c!='\n'){
+						buffer[i++]=c;
+					}
+					/*
+					do{
+						file.get(c);
+						buffer[i++] = c;	
+					}while(c!='\n');
+					*/
+					buffer[i] = '\0'; 
+					cout << "[COMENTARIO SIMPLE: " << buffer << "]\n";
+				}else if(c=='*'){
+					buffer[i++] = primero;
+					buffer[i++] = c;
+					
+					
+					while(file.get(c)){
+						//buffer[i++] = c;
+						if(c=='*'){
+							buffer[i++] = c;
+							break;
+						}else{
+							buffer[i++] = c;
+						}
+						
+					}
+					file.get(c);
+					buffer[i++] = c;
+					buffer[i] = '\0'; 
+					cout << "[COMENTARIO MULTILINEA: " << buffer << "]\n";
+				}else{
+					file.unget();
+					cout<<"[OPERADOR: /]\n";
+				}
+			}else{
+				file.unget();
+				cout<<"[OPERADOR: /]\n";
+			}
+			
+		
+		
+		
+		 
         //4. Logica de deteccion directa de operadores y limitadores
 		}else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=') {
-            cout << "[OPERATOR: " << c << "]\n";
+            cout << "[OPERADOR: " << c << "]\n";
         } else if (c == ';' || c == ',' || c == '(' || c == ')') {
-            cout << "[DELIMITER: " << c << "]\n";
+            cout << "[DELIMITADOR: " << c << "]\n";
         } else {
-            cout << "[UNKNOWN: " << c << "]\n";
+            cout << "[DESCONOCIDO: " << c << "]\n";
         }
 		
     }
