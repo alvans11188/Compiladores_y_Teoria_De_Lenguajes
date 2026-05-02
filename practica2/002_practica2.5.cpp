@@ -7,7 +7,7 @@ int main(){
 	auto palabras_inicio = sregex_iterator(texto.begin(), texto.end(), patron); 
 	auto palabras_fin = sregex_iterator(); 
 	for (auto i = palabras_inicio; i != palabras_fin; i++) { 
-		cout << i->str() << endl; 
+		cout << i->str() << endl;
 	}
  
     return 0;
